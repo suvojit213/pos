@@ -1,0 +1,35 @@
+- name: 📰 Send News to Telegram
+     run: |
+          python <<EOF
+          import requests
+
+    bot_token = "8018823912:AAGedWAS21in7NZbQuu3d8i8am8x6DqSQfA"
+    chat_id = "-1002798687658"
+
+    url = "https://inshortsapi.vercel.app/news?category=technology"
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        print("❌ Failed to fetch news")
+        exit(1)
+
+    news_data = response.json().get("data", [])[:5]
+
+    message = "🗞️ *Top 5 Tech News Today*\n\n"
+    for i, article in enumerate(news_data, 1):
+        title = article.get("title", "")
+        content = article.get("content", "").replace("_", "\\_").replace("*", "\\*")
+        link = article.get("readMoreUrl", "")
+        message += f"*{i}. {title}*\n_{content}_\n[Read more]({link})\n\n"
+
+    send_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": True
+    }
+
+    tg_response = requests.post(send_url, data=payload)
+    print("✅ Telegram Response:", tg_response.status_code, tg_response.text)
+    EOF
